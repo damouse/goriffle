@@ -15,7 +15,7 @@ type session struct {
 	ReceiveTimeout time.Duration
 	Auth           map[string]authFunc
 	ReceiveDone    chan bool
-	listeners      map[uint]chan Message
+	listeners      map[uint]chan message
 	events         map[uint]*boundEndpoint
 	procedures     map[uint]*boundEndpoint
 	requestCount   uint
@@ -39,7 +39,7 @@ func Start(url string, domain string) (*session, error) {
 
 	connection := &websocketConnection{
 		conn:        conn,
-		messages:    make(chan Message, 10),
+		messages:    make(chan message, 10),
 		serializer:  new(jSONSerializer),
 		payloadType: websocket.TextMessage,
 	}
@@ -53,7 +53,7 @@ func Start(url string, domain string) (*session, error) {
 	client := &session{
 		connection:     connection,
 		ReceiveTimeout: 10 * time.Second,
-		listeners:      make(map[uint]chan Message),
+		listeners:      make(map[uint]chan message),
 		events:         make(map[uint]*boundEndpoint),
 		procedures:     make(map[uint]*boundEndpoint),
 		requestCount:   0,

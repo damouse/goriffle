@@ -1,7 +1,7 @@
 package riffle
 
 // Message is a generic container for a WAMP message.
-type Message interface {
+type message interface {
 	messageType() messageType
 }
 
@@ -26,7 +26,7 @@ var (
 
 type messageType int
 
-func (mt messageType) New() Message {
+func (mt messageType) New() message {
 	switch mt {
 	case hELLO:
 		return new(hello)
@@ -495,7 +495,7 @@ func (e NoDestinationError) Error() string {
 }
 
 // Given a message, return the intended endpoint
-func destination(m *Message) (string, error) {
+func destination(m *message) (string, error) {
 	msg := *m
 
 	switch msg := msg.(type) {
@@ -518,7 +518,7 @@ func destination(m *Message) (string, error) {
 }
 
 // Given a message, return the request uint
-func requestID(m *Message) uint {
+func requestID(m *message) uint {
 	switch msg := (*m).(type) {
 	case *publish:
 		return msg.Request

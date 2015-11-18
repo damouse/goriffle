@@ -13,13 +13,13 @@ type websocketConnection struct {
 	conn        *websocket.Conn
 	connLock    sync.Mutex
 	serializer  Serializer
-	messages    chan Message
+	messages    chan message
 	payloadType int
 	closed      bool
 }
 
 type sender interface {
-	Send(Message) error
+	Send(message) error
 }
 
 type connection interface {
@@ -30,14 +30,14 @@ type connection interface {
 	Close() error
 
 	// Receive returns a channel of messages coming from the peer.
-	Receive() <-chan Message
+	Receive() <-chan message
 }
 
 func (c *session) handleInvocation(msg *invocation) {
 	if proc, ok := c.procedures[msg.Registration]; ok {
 		go func() {
 			result, err := cumin(proc.handler, msg.Arguments)
-			var tosend Message
+			var tosend message
 
 			tosend = &yield{
 				Request:   msg.Request,
@@ -74,7 +74,7 @@ func (c *session) handleInvocation(msg *invocation) {
 }
 
 // Convenience function to get a single message from a peer
-func getMessageTimeout(p connection, t time.Duration) (Message, error) {
+func getMessageTimeout(p connection, t time.Duration) (message, error) {
 	select {
 	case msg, open := <-p.Receive():
 		if !open {
@@ -87,7 +87,7 @@ func getMessageTimeout(p connection, t time.Duration) (Message, error) {
 }
 
 // TODO: make this just add the message to a channel so we don't block
-func (ep *websocketConnection) Send(msg Message) error {
+func (ep *websocketConnection) Send(msg message) error {
 	b, err := ep.serializer.Serialize(msg)
 
 	if err != nil {
@@ -101,7 +101,7 @@ func (ep *websocketConnection) Send(msg Message) error {
 	return err
 }
 
-func (ep *websocketConnection) Receive() <-chan Message {
+func (ep *websocketConnection) Receive() <-chan message {
 	return ep.messages
 }
 
@@ -148,11 +148,11 @@ func (ep *websocketConnection) run() {
 
 func (c *session) registerListener(id uint) {
 	//log.Println("register listener:", id)
-	wait := make(chan Message, 1)
+	wait := make(chan message, 1)
 	c.listeners[id] = wait
 }
 
-func (c *session) waitOnListener(id uint) (Message, error) {
+func (c *session) waitOnListener(id uint) (message, error) {
 	if wait, ok := c.listeners[id]; !ok {
 		return nil, fmt.Errorf("unknown listener uint: %v", id)
 	} else {
@@ -165,7 +165,7 @@ func (c *session) waitOnListener(id uint) (Message, error) {
 	}
 }
 
-func (c *session) notifyListener(msg Message, requestId uint) {
+func (c *session) notifyListener(msg message, requestId uint) {
 	// pass in the request uint so we don't have to do any type assertion
 	if l, ok := c.listeners[requestId]; ok {
 		l <- msg
@@ -174,7 +174,7 @@ func (c *session) notifyListener(msg Message, requestId uint) {
 	}
 }
 
-func formatUnexpectedMessage(msg Message, expected messageType) string {
+func formatUnexpectedMessage(msg message, expected messageType) string {
 	s := fmt.Sprintf("received unexpected %s message while waiting for %s", msg.messageType(), expected)
 	switch m := msg.(type) {
 	case *abort:
