@@ -18,12 +18,12 @@ type websocketConnection struct {
 	closed      bool
 }
 
-type Sender interface {
+type sender interface {
 	Send(Message) error
 }
 
-type Connection interface {
-	Sender
+type connection interface {
+	sender
 
 	// Closes the peer connection and any channel returned from Receive().
 	// Multiple calls to Close() will have no effect.
@@ -33,22 +33,20 @@ type Connection interface {
 	Receive() <-chan Message
 }
 
-type AuthFunc func(map[string]interface{}, map[string]interface{}) (string, map[string]interface{}, error)
-
-func (c *Session) handleInvocation(msg *Invocation) {
+func (c *session) handleInvocation(msg *invocation) {
 	if proc, ok := c.procedures[msg.Registration]; ok {
 		go func() {
-			result, err := Cumin(proc.handler, msg.Arguments)
+			result, err := cumin(proc.handler, msg.Arguments)
 			var tosend Message
 
-			tosend = &Yield{
+			tosend = &yield{
 				Request:   msg.Request,
 				Options:   make(map[string]interface{}),
 				Arguments: result,
 			}
 
 			if err != nil {
-				tosend = &Error{
+				tosend = &errorMessage{
 					Type:      INVOCATION,
 					Request:   msg.Request,
 					Details:   make(map[string]interface{}),
@@ -64,7 +62,7 @@ func (c *Session) handleInvocation(msg *Invocation) {
 	} else {
 		//log.Println("no handler registered for registration:", msg.Registration)
 
-		if err := c.Send(&Error{
+		if err := c.Send(&errorMessage{
 			Type:    INVOCATION,
 			Request: msg.Request,
 			Details: make(map[string]interface{}),
@@ -76,7 +74,7 @@ func (c *Session) handleInvocation(msg *Invocation) {
 }
 
 // Convenience function to get a single message from a peer
-func GetMessageTimeout(p Connection, t time.Duration) (Message, error) {
+func getMessageTimeout(p connection, t time.Duration) (Message, error) {
 	select {
 	case msg, open := <-p.Receive():
 		if !open {
@@ -148,13 +146,13 @@ func (ep *websocketConnection) run() {
 	}
 }
 
-func (c *Session) registerListener(id uint) {
+func (c *session) registerListener(id uint) {
 	//log.Println("register listener:", id)
 	wait := make(chan Message, 1)
 	c.listeners[id] = wait
 }
 
-func (c *Session) waitOnListener(id uint) (Message, error) {
+func (c *session) waitOnListener(id uint) (Message, error) {
 	if wait, ok := c.listeners[id]; !ok {
 		return nil, fmt.Errorf("unknown listener uint: %v", id)
 	} else {
@@ -167,23 +165,23 @@ func (c *Session) waitOnListener(id uint) (Message, error) {
 	}
 }
 
-func (c *Session) notifyListener(msg Message, requestId uint) {
+func (c *session) notifyListener(msg Message, requestId uint) {
 	// pass in the request uint so we don't have to do any type assertion
 	if l, ok := c.listeners[requestId]; ok {
 		l <- msg
 	} else {
-		log.Println("no listener for message", msg.MessageType(), requestId)
+		log.Println("no listener for message", msg.messageType(), requestId)
 	}
 }
 
-func formatUnexpectedMessage(msg Message, expected MessageType) string {
-	s := fmt.Sprintf("received unexpected %s message while waiting for %s", msg.MessageType(), expected)
+func formatUnexpectedMessage(msg Message, expected messageType) string {
+	s := fmt.Sprintf("received unexpected %s message while waiting for %s", msg.messageType(), expected)
 	switch m := msg.(type) {
-	case *Abort:
+	case *abort:
 		s += ": " + string(m.Reason)
 		s += formatUnknownMap(m.Details)
 		return s
-	case *Goodbye:
+	case *goodbye:
 		s += ": " + string(m.Reason)
 		s += formatUnknownMap(m.Details)
 		return s

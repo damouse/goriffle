@@ -8,10 +8,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Session struct {
-	Connection
+type authFunc func(map[string]interface{}, map[string]interface{}) (string, map[string]interface{}, error)
+
+type session struct {
+	connection
 	ReceiveTimeout time.Duration
-	Auth           map[string]AuthFunc
+	Auth           map[string]authFunc
 	ReceiveDone    chan bool
 	listeners      map[uint]chan Message
 	events         map[uint]*boundEndpoint
@@ -26,7 +28,7 @@ type boundEndpoint struct {
 }
 
 // Connect to the node with the given URL
-func Start(url string, domain string) (*Session, error) {
+func Start(url string, domain string) (*session, error) {
 	dialer := websocket.Dialer{Subprotocols: []string{"wamp.2.json"}}
 
 	conn, _, err := dialer.Dial(url, nil)
@@ -48,8 +50,8 @@ func Start(url string, domain string) (*Session, error) {
 
 	go connection.run()
 
-	client := &Session{
-		Connection:     connection,
+	client := &session{
+		connection:     connection,
 		ReceiveTimeout: 10 * time.Second,
 		listeners:      make(map[uint]chan Message),
 		events:         make(map[uint]*boundEndpoint),
@@ -63,39 +65,39 @@ func Start(url string, domain string) (*Session, error) {
 
 // Receive handles messages from the server until this client disconnects.
 // This function blocks and is most commonly run in a goroutine.
-func (c *Session) Receive() {
-	for msg := range c.Connection.Receive() {
+func (c *session) Receive() {
+	for msg := range c.connection.Receive() {
 
 		switch msg := msg.(type) {
 
-		case *Event:
+		case *event:
 			if event, ok := c.events[msg.Subscription]; ok {
-				go Cumin(event.handler, msg.Arguments)
+				go cumin(event.handler, msg.Arguments)
 			} else {
 				log.Println("no handler registered for subscription:", msg.Subscription)
 			}
 
-		case *Invocation:
+		case *invocation:
 			c.handleInvocation(msg)
 
-		case *Registered:
+		case *registered:
 			c.notifyListener(msg, msg.Request)
-		case *Subscribed:
+		case *subscribed:
 			c.notifyListener(msg, msg.Request)
-		case *Unsubscribed:
+		case *unsubscribed:
 			c.notifyListener(msg, msg.Request)
-		case *Unregistered:
+		case *unregistered:
 			c.notifyListener(msg, msg.Request)
-		case *Result:
+		case *result:
 			c.notifyListener(msg, msg.Request)
-		case *Error:
+		case *errorMessage:
 			c.notifyListener(msg, msg.Request)
 
-		case *Goodbye:
+		case *goodbye:
 			break
 
 		default:
-			log.Println("unhandled message:", msg.MessageType(), msg)
+			log.Println("unhandled message:", msg.messageType(), msg)
 		}
 	}
 
@@ -109,11 +111,11 @@ func (c *Session) Receive() {
 /////////////////////////////////////////////
 
 // Subscribe registers the EventHandler to be called for every message in the provided topic.
-func (c *Session) Subscribe(topic string, fn interface{}) error {
-	id := NewID()
+func (c *session) Subscribe(topic string, fn interface{}) error {
+	id := newID()
 	c.registerListener(id)
 
-	sub := &Subscribe{
+	sub := &subscribe{
 		Request: id,
 		Options: make(map[string]interface{}),
 		Domain:  topic,
@@ -127,9 +129,9 @@ func (c *Session) Subscribe(topic string, fn interface{}) error {
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
-	} else if e, ok := msg.(*Error); ok {
+	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error subscribing to topic '%v': %v", topic, e.Error)
-	} else if subscribed, ok := msg.(*Subscribed); !ok {
+	} else if subscribed, ok := msg.(*subscribed); !ok {
 		return fmt.Errorf(formatUnexpectedMessage(msg, SUBSCRIBED))
 	} else {
 		// register the event handler with this subscription
@@ -139,17 +141,17 @@ func (c *Session) Subscribe(topic string, fn interface{}) error {
 }
 
 // Unsubscribe removes the registered EventHandler from the topic.
-func (c *Session) Unsubscribe(topic string) error {
+func (c *session) Unsubscribe(topic string) error {
 	subscriptionID, _, ok := bindingForEndpoint(c.events, topic)
 
 	if !ok {
 		return fmt.Errorf("Domain %s is not registered with this client.", topic)
 	}
 
-	id := NewID()
+	id := newID()
 	c.registerListener(id)
 
-	sub := &Unsubscribe{
+	sub := &unsubscribe{
 		Request:      id,
 		Subscription: subscriptionID,
 	}
@@ -162,9 +164,9 @@ func (c *Session) Unsubscribe(topic string) error {
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
-	} else if e, ok := msg.(*Error); ok {
+	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error unsubscribing to topic '%v': %v", topic, e.Error)
-	} else if _, ok := msg.(*Unsubscribed); !ok {
+	} else if _, ok := msg.(*unsubscribed); !ok {
 		return fmt.Errorf(formatUnexpectedMessage(msg, UNSUBSCRIBED))
 	}
 
@@ -172,11 +174,11 @@ func (c *Session) Unsubscribe(topic string) error {
 	return nil
 }
 
-func (c *Session) Register(procedure string, fn interface{}, options map[string]interface{}) error {
-	id := NewID()
+func (c *session) Register(procedure string, fn interface{}, options map[string]interface{}) error {
+	id := newID()
 	c.registerListener(id)
 
-	register := &Register{
+	register := &register{
 		Request: id,
 		Options: options,
 		Domain:  procedure,
@@ -190,9 +192,9 @@ func (c *Session) Register(procedure string, fn interface{}, options map[string]
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
-	} else if e, ok := msg.(*Error); ok {
+	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error registering procedure '%v': %v", procedure, e.Error)
-	} else if registered, ok := msg.(*Registered); !ok {
+	} else if registered, ok := msg.(*registered); !ok {
 		return fmt.Errorf(formatUnexpectedMessage(msg, REGISTERED))
 	} else {
 		// register the event handler with this registration
@@ -202,17 +204,17 @@ func (c *Session) Register(procedure string, fn interface{}, options map[string]
 }
 
 // Unregister removes a procedure with the Node
-func (c *Session) Unregister(procedure string) error {
+func (c *session) Unregister(procedure string) error {
 	procedureID, _, ok := bindingForEndpoint(c.procedures, procedure)
 
 	if !ok {
 		return fmt.Errorf("Domain %s is not registered with this client.", procedure)
 	}
 
-	id := NewID()
+	id := newID()
 	c.registerListener(id)
 
-	unregister := &Unregister{
+	unregister := &unregister{
 		Request:      id,
 		Registration: procedureID,
 	}
@@ -225,9 +227,9 @@ func (c *Session) Unregister(procedure string) error {
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
-	} else if e, ok := msg.(*Error); ok {
+	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error unregister to procedure '%v': %v", procedure, e.Error)
-	} else if _, ok := msg.(*Unregistered); !ok {
+	} else if _, ok := msg.(*unregistered); !ok {
 		return fmt.Errorf(formatUnexpectedMessage(msg, UNREGISTERED))
 	}
 
@@ -237,9 +239,9 @@ func (c *Session) Unregister(procedure string) error {
 }
 
 // Publish publishes an EVENT to all subscribed peers.
-func (c *Session) Publish(endpoint string, args ...interface{}) error {
-	return c.Send(&Publish{
-		Request:   NewID(),
+func (c *session) Publish(endpoint string, args ...interface{}) error {
+	return c.Send(&publish{
+		Request:   newID(),
 		Options:   make(map[string]interface{}),
 		Domain:    endpoint,
 		Arguments: args,
@@ -247,11 +249,11 @@ func (c *Session) Publish(endpoint string, args ...interface{}) error {
 }
 
 // Call calls a procedure given a URI.
-func (c *Session) Call(procedure string, args ...interface{}) ([]interface{}, error) {
-	id := NewID()
+func (c *session) Call(procedure string, args ...interface{}) ([]interface{}, error) {
+	id := newID()
 	c.registerListener(id)
 
-	call := &Call{
+	call := &call{
 		Request:   id,
 		Domain:    procedure,
 		Options:   make(map[string]interface{}),
@@ -266,21 +268,21 @@ func (c *Session) Call(procedure string, args ...interface{}) ([]interface{}, er
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return nil, err
-	} else if e, ok := msg.(*Error); ok {
+	} else if e, ok := msg.(*errorMessage); ok {
 		return nil, fmt.Errorf("error calling procedure '%v': %v", procedure, e.Error)
-	} else if result, ok := msg.(*Result); !ok {
+	} else if result, ok := msg.(*result); !ok {
 		return nil, fmt.Errorf(formatUnexpectedMessage(msg, RESULT))
 	} else {
 		return result.Arguments, nil
 	}
 }
 
-func (c *Session) Leave() error {
+func (c *session) Leave() error {
 	if err := c.Send(goodbyeSession); err != nil {
 		return fmt.Errorf("error leaving realm: %v", err)
 	}
 
-	if err := c.Connection.Close(); err != nil {
+	if err := c.connection.Close(); err != nil {
 		return fmt.Errorf("error closing client connection: %v", err)
 	}
 
@@ -292,7 +294,7 @@ func (c *Session) Leave() error {
 /////////////////////////////////////////////
 
 // JoinRealm joins a WAMP realm, but does not handle challenge/response authentication.
-func (c *Session) JoinRealm(realm string, details map[string]interface{}) (map[string]interface{}, error) {
+func (c *session) JoinRealm(realm string, details map[string]interface{}) (map[string]interface{}, error) {
 	if details == nil {
 		details = map[string]interface{}{}
 	}
@@ -301,17 +303,17 @@ func (c *Session) JoinRealm(realm string, details map[string]interface{}) (map[s
 		return c.joinRealmCRA(realm, details)
 	}
 
-	if err := c.Send(&Hello{Realm: realm, Details: details}); err != nil {
-		c.Connection.Close()
+	if err := c.Send(&hello{Realm: realm, Details: details}); err != nil {
+		c.connection.Close()
 		return nil, err
 	}
 
-	if msg, err := GetMessageTimeout(c.Connection, c.ReceiveTimeout); err != nil {
-		c.Connection.Close()
+	if msg, err := getMessageTimeout(c.connection, c.ReceiveTimeout); err != nil {
+		c.connection.Close()
 		return nil, err
-	} else if welcome, ok := msg.(*Welcome); !ok {
+	} else if welcome, ok := msg.(*welcome); !ok {
 		c.Send(abortUnexpectedMsg)
-		c.Connection.Close()
+		c.connection.Close()
 		return nil, fmt.Errorf(formatUnexpectedMessage(msg, WELCOME))
 	} else {
 		go c.Receive()
@@ -320,41 +322,41 @@ func (c *Session) JoinRealm(realm string, details map[string]interface{}) (map[s
 }
 
 // joinRealmCRA joins a WAMP realm and handles challenge/response authentication.
-func (c *Session) joinRealmCRA(realm string, details map[string]interface{}) (map[string]interface{}, error) {
+func (c *session) joinRealmCRA(realm string, details map[string]interface{}) (map[string]interface{}, error) {
 	authmethods := []interface{}{}
 	for m := range c.Auth {
 		authmethods = append(authmethods, m)
 	}
 	details["authmethods"] = authmethods
-	if err := c.Send(&Hello{Realm: realm, Details: details}); err != nil {
-		c.Connection.Close()
+	if err := c.Send(&hello{Realm: realm, Details: details}); err != nil {
+		c.connection.Close()
 		return nil, err
 	}
-	if msg, err := GetMessageTimeout(c.Connection, c.ReceiveTimeout); err != nil {
-		c.Connection.Close()
+	if msg, err := getMessageTimeout(c.connection, c.ReceiveTimeout); err != nil {
+		c.connection.Close()
 		return nil, err
-	} else if challenge, ok := msg.(*Challenge); !ok {
+	} else if challenge, ok := msg.(*challenge); !ok {
 		c.Send(abortUnexpectedMsg)
-		c.Connection.Close()
+		c.connection.Close()
 		return nil, fmt.Errorf(formatUnexpectedMessage(msg, CHALLENGE))
 	} else if authFunc, ok := c.Auth[challenge.AuthMethod]; !ok {
 		c.Send(abortNoAuthHandler)
-		c.Connection.Close()
+		c.connection.Close()
 		return nil, fmt.Errorf("no auth handler for method: %s", challenge.AuthMethod)
 	} else if signature, authDetails, err := authFunc(details, challenge.Extra); err != nil {
 		c.Send(abortAuthFailure)
-		c.Connection.Close()
+		c.connection.Close()
 		return nil, err
-	} else if err := c.Send(&Authenticate{Signature: signature, Extra: authDetails}); err != nil {
-		c.Connection.Close()
+	} else if err := c.Send(&authenticate{Signature: signature, Extra: authDetails}); err != nil {
+		c.connection.Close()
 		return nil, err
 	}
-	if msg, err := GetMessageTimeout(c.Connection, c.ReceiveTimeout); err != nil {
-		c.Connection.Close()
+	if msg, err := getMessageTimeout(c.connection, c.ReceiveTimeout); err != nil {
+		c.connection.Close()
 		return nil, err
-	} else if welcome, ok := msg.(*Welcome); !ok {
+	} else if welcome, ok := msg.(*welcome); !ok {
 		c.Send(abortUnexpectedMsg)
-		c.Connection.Close()
+		c.connection.Close()
 		return nil, fmt.Errorf(formatUnexpectedMessage(msg, WELCOME))
 	} else {
 		go c.Receive()

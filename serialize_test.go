@@ -22,7 +22,7 @@ func TestJSONDeserialize(t *testing.T) {
 	tests := []test{
 		{
 			`[1,"some.realm",{}]`,
-			&Hello{"some.realm", make(map[string]interface{})},
+			&hello{"some.realm", make(map[string]interface{})},
 			2,
 		},
 	}
@@ -31,8 +31,8 @@ func TestJSONDeserialize(t *testing.T) {
 	for _, tst := range tests {
 		if msg, err := s.Deserialize([]byte(tst.packet)); err != nil {
 			t.Errorf("Error parsing good packet: %s, %s", err, tst.packet)
-		} else if msg.MessageType() != tst.exp.MessageType() {
-			t.Errorf("Incorrect message type: %d != %d", msg.MessageType(), tst.exp.MessageType())
+		} else if msg.messageType() != tst.exp.messageType() {
+			t.Errorf("Incorrect message type: %d != %d", msg.messageType(), tst.exp.messageType())
 		} else if !reflect.DeepEqual(msg, tst.exp) {
 			t.Errorf("%+v != %+v", msg, tst.exp)
 		}
@@ -50,7 +50,7 @@ func TestApplySlice(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		pubMsg, ok := msg.(*Publish)
+		pubMsg, ok := msg.(*publish)
 		Convey("The message returned should be a publish message", func() {
 			So(ok, ShouldBeTrue)
 		})
@@ -103,7 +103,7 @@ func TestToList(t *testing.T) {
 	}
 
 	for _, tst := range tests {
-		msg := &Event{0, 0, nil, tst.args, tst.kwArgs}
+		msg := &event{0, 0, nil, tst.args, tst.kwArgs}
 		// +1 to account for the message type
 		numField := reflect.ValueOf(msg).Elem().NumField() + 1
 		exp := numField - tst.omit

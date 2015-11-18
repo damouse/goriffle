@@ -20,7 +20,7 @@ const (
 )
 
 // applies a list of values from a WAMP message to a message type
-func apply(msgType MessageType, arr []interface{}) (Message, error) {
+func apply(msgType messageType, arr []interface{}) (Message, error) {
 	msg := msgType.New()
 	if msg == nil {
 		return nil, fmt.Errorf("Unsupported message type")
@@ -132,7 +132,7 @@ func toList(msg Message) []interface{} {
 		}
 	}
 
-	ret := []interface{}{int(msg.MessageType())}
+	ret := []interface{}{int(msg.messageType())}
 	for i := 0; i <= last; i++ {
 		ret = append(ret, val.Field(i).Interface())
 	}
@@ -159,9 +159,9 @@ func (s *MessagePackSerializer) Deserialize(data []byte) (Message, error) {
 		return nil, fmt.Errorf("Invalid message")
 	}
 
-	var msgType MessageType
+	var msgType messageType
 	if typ, ok := arr[0].(int64); ok {
-		msgType = MessageType(typ)
+		msgType = messageType(typ)
 	} else {
 		return nil, fmt.Errorf("Unsupported message format")
 	}
@@ -196,9 +196,9 @@ func (s *JSONSerializer) Deserialize(data []byte) (Message, error) {
 		return nil, fmt.Errorf("Invalid message")
 	}
 
-	var msgType MessageType
+	var msgType messageType
 	if typ, ok := arr[0].(float64); ok {
-		msgType = MessageType(typ)
+		msgType = messageType(typ)
 	} else {
 		return nil, fmt.Errorf("Unsupported message format")
 	}

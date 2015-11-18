@@ -2,93 +2,93 @@ package riffle
 
 // Message is a generic container for a WAMP message.
 type Message interface {
-	MessageType() MessageType
+	messageType() messageType
 }
 
 var (
-	abortUnexpectedMsg = &Abort{
+	abortUnexpectedMsg = &abort{
 		Details: map[string]interface{}{},
 		Reason:  "turnpike.error.unexpected_message_type",
 	}
-	abortNoAuthHandler = &Abort{
+	abortNoAuthHandler = &abort{
 		Details: map[string]interface{}{},
 		Reason:  "turnpike.error.no_handler_for_authmethod",
 	}
-	abortAuthFailure = &Abort{
+	abortAuthFailure = &abort{
 		Details: map[string]interface{}{},
 		Reason:  "turnpike.error.authentication_failure",
 	}
-	goodbyeSession = &Goodbye{
+	goodbyeSession = &goodbye{
 		Details: map[string]interface{}{},
 		Reason:  ErrCloseRealm,
 	}
 )
 
-type MessageType int
+type messageType int
 
-func (mt MessageType) New() Message {
+func (mt messageType) New() Message {
 	switch mt {
 	case HELLO:
-		return new(Hello)
+		return new(hello)
 	case WELCOME:
-		return new(Welcome)
+		return new(welcome)
 	case ABORT:
-		return new(Abort)
+		return new(abort)
 	case CHALLENGE:
-		return new(Challenge)
+		return new(challenge)
 	case AUTHENTICATE:
-		return new(Authenticate)
+		return new(authenticate)
 	case GOODBYE:
-		return new(Goodbye)
+		return new(goodbye)
 	case HEARTBEAT:
-		return new(Heartbeat)
+		return new(heartbeat)
 	case ERROR:
-		return new(Error)
+		return new(errorMessage)
 
 	case PUBLISH:
-		return new(Publish)
+		return new(publish)
 	case PUBLISHED:
-		return new(Published)
+		return new(published)
 
 	case SUBSCRIBE:
-		return new(Subscribe)
+		return new(subscribe)
 	case SUBSCRIBED:
-		return new(Subscribed)
+		return new(subscribed)
 	case UNSUBSCRIBE:
-		return new(Unsubscribe)
+		return new(unsubscribe)
 	case UNSUBSCRIBED:
-		return new(Unsubscribed)
+		return new(unsubscribed)
 	case EVENT:
-		return new(Event)
+		return new(event)
 
 	case CALL:
-		return new(Call)
+		return new(call)
 	case CANCEL:
-		return new(Cancel)
+		return new(cancel)
 	case RESULT:
-		return new(Result)
+		return new(result)
 
 	case REGISTER:
-		return new(Register)
+		return new(register)
 	case REGISTERED:
-		return new(Registered)
+		return new(registered)
 	case UNREGISTER:
-		return new(Unregister)
+		return new(unregister)
 	case UNREGISTERED:
-		return new(Unregistered)
+		return new(unregistered)
 	case INVOCATION:
-		return new(Invocation)
+		return new(invocation)
 	case INTERRUPT:
-		return new(Interrupt)
+		return new(interrupt)
 	case YIELD:
-		return new(Yield)
+		return new(yield)
 	default:
 		// TODO: allow custom message types?
 		return nil
 	}
 }
 
-func (mt MessageType) String() string {
+func (mt messageType) String() string {
 	switch mt {
 	case HELLO:
 		return "HELLO"
@@ -151,114 +151,114 @@ func (mt MessageType) String() string {
 }
 
 const (
-	HELLO        MessageType = 1
-	WELCOME      MessageType = 2
-	ABORT        MessageType = 3
-	CHALLENGE    MessageType = 4
-	AUTHENTICATE MessageType = 5
-	GOODBYE      MessageType = 6
-	HEARTBEAT    MessageType = 7
-	ERROR        MessageType = 8
+	HELLO        messageType = 1
+	WELCOME      messageType = 2
+	ABORT        messageType = 3
+	CHALLENGE    messageType = 4
+	AUTHENTICATE messageType = 5
+	GOODBYE      messageType = 6
+	HEARTBEAT    messageType = 7
+	ERROR        messageType = 8
 
-	PUBLISH   MessageType = 16 //	Tx 	Rx
-	PUBLISHED MessageType = 17 //	Rx 	Tx
+	PUBLISH   messageType = 16 //	Tx 	Rx
+	PUBLISHED messageType = 17 //	Rx 	Tx
 
-	SUBSCRIBE    MessageType = 32 //	Rx 	Tx
-	SUBSCRIBED   MessageType = 33 //	Tx 	Rx
-	UNSUBSCRIBE  MessageType = 34 //	Rx 	Tx
-	UNSUBSCRIBED MessageType = 35 //	Tx 	Rx
-	EVENT        MessageType = 36 //	Tx 	Rx
+	SUBSCRIBE    messageType = 32 //	Rx 	Tx
+	SUBSCRIBED   messageType = 33 //	Tx 	Rx
+	UNSUBSCRIBE  messageType = 34 //	Rx 	Tx
+	UNSUBSCRIBED messageType = 35 //	Tx 	Rx
+	EVENT        messageType = 36 //	Tx 	Rx
 
-	CALL   MessageType = 48 //	Tx 	Rx
-	CANCEL MessageType = 49 //	Tx 	Rx
-	RESULT MessageType = 50 //	Rx 	Tx
+	CALL   messageType = 48 //	Tx 	Rx
+	CANCEL messageType = 49 //	Tx 	Rx
+	RESULT messageType = 50 //	Rx 	Tx
 
-	REGISTER     MessageType = 64 //	Rx 	Tx
-	REGISTERED   MessageType = 65 //	Tx 	Rx
-	UNREGISTER   MessageType = 66 //	Rx 	Tx
-	UNREGISTERED MessageType = 67 //	Tx 	Rx
-	INVOCATION   MessageType = 68 //	Tx 	Rx
-	INTERRUPT    MessageType = 69 //	Tx 	Rx
-	YIELD        MessageType = 70 //	Rx 	Tx
+	REGISTER     messageType = 64 //	Rx 	Tx
+	REGISTERED   messageType = 65 //	Tx 	Rx
+	UNREGISTER   messageType = 66 //	Rx 	Tx
+	UNREGISTERED messageType = 67 //	Tx 	Rx
+	INVOCATION   messageType = 68 //	Tx 	Rx
+	INTERRUPT    messageType = 69 //	Tx 	Rx
+	YIELD        messageType = 70 //	Rx 	Tx
 )
 
 // [HELLO, Realm|uri, Details|dict]
-type Hello struct {
+type hello struct {
 	Realm   string
 	Details map[string]interface{}
 }
 
-func (msg *Hello) MessageType() MessageType {
+func (msg *hello) messageType() messageType {
 	return HELLO
 }
 
 // [WELCOME, Session|id, Details|dict]
-type Welcome struct {
+type welcome struct {
 	Id      uint
 	Details map[string]interface{}
 }
 
-func (msg *Welcome) MessageType() MessageType {
+func (msg *welcome) messageType() messageType {
 	return WELCOME
 }
 
 // [ABORT, Details|dict, Reason|uri]
-type Abort struct {
+type abort struct {
 	Details map[string]interface{}
 	Reason  string
 }
 
-func (msg *Abort) MessageType() MessageType {
+func (msg *abort) messageType() messageType {
 	return ABORT
 }
 
 // [CHALLENGE, AuthMethod|string, Extra|dict]
-type Challenge struct {
+type challenge struct {
 	AuthMethod string
 	Extra      map[string]interface{}
 }
 
-func (msg *Challenge) MessageType() MessageType {
+func (msg *challenge) messageType() messageType {
 	return CHALLENGE
 }
 
 // [AUTHENTICATE, Signature|string, Extra|dict]
-type Authenticate struct {
+type authenticate struct {
 	Signature string
 	Extra     map[string]interface{}
 }
 
-func (msg *Authenticate) MessageType() MessageType {
+func (msg *authenticate) messageType() messageType {
 	return AUTHENTICATE
 }
 
 // [GOODBYE, Details|dict, Reason|uri]
-type Goodbye struct {
+type goodbye struct {
 	Details map[string]interface{}
 	Reason  string
 }
 
-func (msg *Goodbye) MessageType() MessageType {
+func (msg *goodbye) messageType() messageType {
 	return GOODBYE
 }
 
 // [HEARTBEAT, IncomingSeq|integer, OutgoingSeq|integer
 // [HEARTBEAT, IncomingSeq|integer, OutgoingSeq|integer, Discard|string]
-type Heartbeat struct {
+type heartbeat struct {
 	IncomingSeq uint
 	OutgoingSeq uint
 	Discard     string
 }
 
-func (msg *Heartbeat) MessageType() MessageType {
+func (msg *heartbeat) messageType() messageType {
 	return HEARTBEAT
 }
 
 // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri]
 // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list]
 // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
-type Error struct {
-	Type        MessageType
+type errorMessage struct {
+	Type        messageType
 	Request     uint
 	Details     map[string]interface{}
 	Error       string
@@ -266,14 +266,14 @@ type Error struct {
 	ArgumentsKw map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Error) MessageType() MessageType {
+func (msg *errorMessage) messageType() messageType {
 	return ERROR
 }
 
 // [PUBLISH, Request|id, Options|dict, Domain|uri]
 // [PUBLISH, Request|id, Options|dict, Domain|uri, Arguments|list]
 // [PUBLISH, Request|id, Options|dict, Domain|uri, Arguments|list, ArgumentsKw|dict]
-type Publish struct {
+type publish struct {
 	Request     uint
 	Options     map[string]interface{}
 	Domain      string
@@ -281,57 +281,57 @@ type Publish struct {
 	ArgumentsKw map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Publish) MessageType() MessageType {
+func (msg *publish) messageType() messageType {
 	return PUBLISH
 }
 
 // [PUBLISHED, PUBLISH.Request|id, Publication|id]
-type Published struct {
+type published struct {
 	Request     uint
 	Publication uint
 }
 
-func (msg *Published) MessageType() MessageType {
+func (msg *published) messageType() messageType {
 	return PUBLISHED
 }
 
 // [SUBSCRIBE, Request|id, Options|dict, Domain|uri]
-type Subscribe struct {
+type subscribe struct {
 	Request uint
 	Options map[string]interface{}
 	Domain  string
 }
 
-func (msg *Subscribe) MessageType() MessageType {
+func (msg *subscribe) messageType() messageType {
 	return SUBSCRIBE
 }
 
 // [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
-type Subscribed struct {
+type subscribed struct {
 	Request      uint
 	Subscription uint
 }
 
-func (msg *Subscribed) MessageType() MessageType {
+func (msg *subscribed) messageType() messageType {
 	return SUBSCRIBED
 }
 
 // [UNSUBSCRIBE, Request|id, SUBSCRIBED.Subscription|id]
-type Unsubscribe struct {
+type unsubscribe struct {
 	Request      uint
 	Subscription uint
 }
 
-func (msg *Unsubscribe) MessageType() MessageType {
+func (msg *unsubscribe) messageType() messageType {
 	return UNSUBSCRIBE
 }
 
 // [UNSUBSCRIBED, UNSUBSCRIBE.Request|id]
-type Unsubscribed struct {
+type unsubscribed struct {
 	Request uint
 }
 
-func (msg *Unsubscribed) MessageType() MessageType {
+func (msg *unsubscribed) messageType() messageType {
 	return UNSUBSCRIBED
 }
 
@@ -339,7 +339,7 @@ func (msg *Unsubscribed) MessageType() MessageType {
 // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list]
 // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list,
 //     PUBLISH.ArgumentsKw|dict]
-type Event struct {
+type event struct {
 	Subscription uint
 	Publication  uint
 	Details      map[string]interface{}
@@ -347,12 +347,12 @@ type Event struct {
 	ArgumentsKw  map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Event) MessageType() MessageType {
+func (msg *event) messageType() messageType {
 	return EVENT
 }
 
 // CallResult represents the result of a CALL.
-type CallResult struct {
+type callResult struct {
 	Args   []interface{}
 	Kwargs map[string]interface{}
 	Err    string
@@ -361,7 +361,7 @@ type CallResult struct {
 // [CALL, Request|id, Options|dict, Domain|uri]
 // [CALL, Request|id, Options|dict, Domain|uri, Arguments|list]
 // [CALL, Request|id, Options|dict, Domain|uri, Arguments|list, ArgumentsKw|dict]
-type Call struct {
+type call struct {
 	Request     uint
 	Options     map[string]interface{}
 	Domain      string
@@ -369,68 +369,68 @@ type Call struct {
 	ArgumentsKw map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Call) MessageType() MessageType {
+func (msg *call) messageType() messageType {
 	return CALL
 }
 
 // [RESULT, CALL.Request|id, Details|dict]
 // [RESULT, CALL.Request|id, Details|dict, YIELD.Arguments|list]
 // [RESULT, CALL.Request|id, Details|dict, YIELD.Arguments|list, YIELD.ArgumentsKw|dict]
-type Result struct {
+type result struct {
 	Request     uint
 	Details     map[string]interface{}
 	Arguments   []interface{}          `wamp:"omitempty"`
 	ArgumentsKw map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Result) MessageType() MessageType {
+func (msg *result) messageType() messageType {
 	return RESULT
 }
 
 // [REGISTER, Request|id, Options|dict, Domain|uri]
-type Register struct {
+type register struct {
 	Request uint
 	Options map[string]interface{}
 	Domain  string
 }
 
-func (msg *Register) MessageType() MessageType {
+func (msg *register) messageType() messageType {
 	return REGISTER
 }
 
 // [REGISTERED, REGISTER.Request|id, Registration|id]
-type Registered struct {
+type registered struct {
 	Request      uint
 	Registration uint
 }
 
-func (msg *Registered) MessageType() MessageType {
+func (msg *registered) messageType() messageType {
 	return REGISTERED
 }
 
 // [UNREGISTER, Request|id, REGISTERED.Registration|id]
-type Unregister struct {
+type unregister struct {
 	Request      uint
 	Registration uint
 }
 
-func (msg *Unregister) MessageType() MessageType {
+func (msg *unregister) messageType() messageType {
 	return UNREGISTER
 }
 
 // [UNREGISTERED, UNREGISTER.Request|id]
-type Unregistered struct {
+type unregistered struct {
 	Request uint
 }
 
-func (msg *Unregistered) MessageType() MessageType {
+func (msg *unregistered) messageType() messageType {
 	return UNREGISTERED
 }
 
 // [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict]
 // [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict, CALL.Arguments|list]
 // [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict, CALL.Arguments|list, CALL.ArgumentsKw|dict]
-type Invocation struct {
+type invocation struct {
 	Request      uint
 	Registration uint
 	Details      map[string]interface{}
@@ -438,41 +438,41 @@ type Invocation struct {
 	ArgumentsKw  map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Invocation) MessageType() MessageType {
+func (msg *invocation) messageType() messageType {
 	return INVOCATION
 }
 
 // [YIELD, INVOCATION.Request|id, Options|dict]
 // [YIELD, INVOCATION.Request|id, Options|dict, Arguments|list]
 // [YIELD, INVOCATION.Request|id, Options|dict, Arguments|list, ArgumentsKw|dict]
-type Yield struct {
+type yield struct {
 	Request     uint
 	Options     map[string]interface{}
 	Arguments   []interface{}          `wamp:"omitempty"`
 	ArgumentsKw map[string]interface{} `wamp:"omitempty"`
 }
 
-func (msg *Yield) MessageType() MessageType {
+func (msg *yield) messageType() messageType {
 	return YIELD
 }
 
 // [CANCEL, CALL.Request|id, Options|dict]
-type Cancel struct {
+type cancel struct {
 	Request uint
 	Options map[string]interface{}
 }
 
-func (msg *Cancel) MessageType() MessageType {
+func (msg *cancel) messageType() messageType {
 	return CANCEL
 }
 
 // [INTERRUPT, INVOCATION.Request|id, Options|dict]
-type Interrupt struct {
+type interrupt struct {
 	Request uint
 	Options map[string]interface{}
 }
 
-func (msg *Interrupt) MessageType() MessageType {
+func (msg *interrupt) messageType() messageType {
 	return INTERRUPT
 }
 
@@ -500,33 +500,33 @@ func destination(m *Message) (string, error) {
 
 	switch msg := msg.(type) {
 
-	case *Publish:
+	case *publish:
 		return msg.Domain, nil
-	case *Subscribe:
+	case *subscribe:
 		return msg.Domain, nil
 
 	// Dealer messages
-	case *Register:
+	case *register:
 		return msg.Domain, nil
-	case *Call:
+	case *call:
 		return msg.Domain, nil
 
 	default:
-		//log.Println("Unhandled message:", msg.MessageType())
-		return "", NoDestinationError(msg.MessageType())
+		//log.Println("Unhandled message:", msg.messageType())
+		return "", NoDestinationError(msg.messageType())
 	}
 }
 
 // Given a message, return the request uint
 func requestID(m *Message) uint {
 	switch msg := (*m).(type) {
-	case *Publish:
+	case *publish:
 		return msg.Request
-	case *Subscribe:
+	case *subscribe:
 		return msg.Request
-	case *Register:
+	case *register:
 		return msg.Request
-	case *Call:
+	case *call:
 		return msg.Request
 	}
 

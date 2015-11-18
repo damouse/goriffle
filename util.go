@@ -14,7 +14,7 @@ func init() {
 }
 
 // NewID generates a random WAMP uint.
-func NewID() uint {
+func newID() uint {
 	return uint(rand.Int63n(maxId))
 }
 
