@@ -18,10 +18,10 @@ func somePub(a int, b int) {
     sess.Leave()
 }
 
-func Greetings(name string) string {
+func Tester(name string) string {
     fmt.Println("I can print!")
     
-    return fmt.Sprintf("Hello, %s!", name)
+    //return fmt.Sprintf("Hello, %s!", name)
 
     s, err := Start("ws://ec2-52-26-83-61.us-west-2.compute.amazonaws.com:8000/ws", "xs.damouse.go")
     sess = s
@@ -32,7 +32,10 @@ func Greetings(name string) string {
     }
 
     s.Register("xs.damouse.go/hello", someCall, nil)
+    fmt.Println("Registered")
+
     s.Subscribe("xs.damouse.go/sub", somePub)
+    fmt.Println("Subscribed")
 
     // Block and recieve
     go s.Receive()
