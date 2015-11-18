@@ -13,8 +13,8 @@ import (
 type Serialization int
 
 const (
-	// Use JSON-encoded strings as a payload.
-	JSON Serialization = iota
+	// Use jSON-encoded strings as a payload.
+	jSON Serialization = iota
 	// Use msgpack-encoded strings as a payload.
 	MSGPACK
 )
@@ -169,9 +169,9 @@ func (s *MessagePackSerializer) Deserialize(data []byte) (Message, error) {
 	return apply(msgType, arr)
 }
 
-// JSONSerializer is an implementation of Serializer that handles serializing
-// and deserializing JSON encoded payloads.
-type JSONSerializer struct {
+// jSONSerializer is an implementation of Serializer that handles serializing
+// and deserializing jSON encoded payloads.
+type jSONSerializer struct {
 }
 
 // Serialize marshals the payload into a message.
@@ -179,7 +179,7 @@ type JSONSerializer struct {
 // This method does not handle binary data according to WAMP specifications automatically,
 // but instead uses the default implementation in encoding/json.
 // Use the BinaryData type in your structures if using binary data.
-func (s *JSONSerializer) Serialize(msg Message) ([]byte, error) {
+func (s *jSONSerializer) Serialize(msg Message) ([]byte, error) {
 	return json.Marshal(toList(msg))
 }
 
@@ -188,7 +188,7 @@ func (s *JSONSerializer) Serialize(msg Message) ([]byte, error) {
 // This method does not handle binary data according to WAMP specifications automatically,
 // but instead uses the default implementation in encoding/json.
 // Use the BinaryData type in your structures if using binary data.
-func (s *JSONSerializer) Deserialize(data []byte) (Message, error) {
+func (s *jSONSerializer) Deserialize(data []byte) (Message, error) {
 	var arr []interface{}
 	if err := json.Unmarshal(data, &arr); err != nil {
 		return nil, err
@@ -208,15 +208,15 @@ func (s *JSONSerializer) Deserialize(data []byte) (Message, error) {
 // Marshals and unmarshals byte arrays according to WAMP specifications:
 // https://github.com/tavendo/WAMP/blob/master/spec/basic.md#binary-conversion-of-json-strings
 //
-// This type *should* be used in types that will be marshalled as JSON.
+// This type *should* be used in types that will be marshalled as jSON.
 type BinaryData []byte
 
-func (b BinaryData) MarshalJSON() ([]byte, error) {
+func (b BinaryData) MarshaljSON() ([]byte, error) {
 	s := base64.StdEncoding.EncodeToString([]byte(b))
 	return json.Marshal("\x00" + s)
 }
 
-func (b *BinaryData) UnmarshalJSON(arr []byte) error {
+func (b *BinaryData) UnmarshaljSON(arr []byte) error {
 	var s string
 	err := json.Unmarshal(arr, &s)
 	if err != nil {

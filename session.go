@@ -40,7 +40,7 @@ func Start(url string, domain string) (*session, error) {
 	connection := &websocketConnection{
 		conn:        conn,
 		messages:    make(chan Message, 10),
-		serializer:  new(JSONSerializer),
+		serializer:  new(jSONSerializer),
 		payloadType: websocket.TextMessage,
 	}
 

@@ -11,7 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestJSONDeserialize(t *testing.T) {
+func TestjSONDeserialize(t *testing.T) {
 	type test struct {
 		packet string
 		exp    Message
@@ -27,7 +27,7 @@ func TestJSONDeserialize(t *testing.T) {
 		},
 	}
 
-	s := new(JSONSerializer)
+	s := new(jSONSerializer)
 	for _, tst := range tests {
 		if msg, err := s.Deserialize([]byte(tst.packet)); err != nil {
 			t.Errorf("Error parsing good packet: %s, %s", err, tst.packet)
