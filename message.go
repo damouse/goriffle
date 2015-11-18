@@ -28,59 +28,59 @@ type messageType int
 
 func (mt messageType) New() Message {
 	switch mt {
-	case HELLO:
+	case hELLO:
 		return new(hello)
-	case WELCOME:
+	case wELCOME:
 		return new(welcome)
-	case ABORT:
+	case aBORT:
 		return new(abort)
-	case CHALLENGE:
+	case cHALLENGE:
 		return new(challenge)
-	case AUTHENTICATE:
+	case aUTHENTICATE:
 		return new(authenticate)
-	case GOODBYE:
+	case gOODBYE:
 		return new(goodbye)
-	case HEARTBEAT:
+	case hEARTBEAT:
 		return new(heartbeat)
-	case ERROR:
+	case eRROR:
 		return new(errorMessage)
 
-	case PUBLISH:
+	case pUBLISH:
 		return new(publish)
-	case PUBLISHED:
+	case pUBLISHED:
 		return new(published)
 
-	case SUBSCRIBE:
+	case sUBSCRIBE:
 		return new(subscribe)
-	case SUBSCRIBED:
+	case sUBSCRIBED:
 		return new(subscribed)
-	case UNSUBSCRIBE:
+	case uNSUBSCRIBE:
 		return new(unsubscribe)
-	case UNSUBSCRIBED:
+	case uNSUBSCRIBED:
 		return new(unsubscribed)
-	case EVENT:
+	case eVENT:
 		return new(event)
 
-	case CALL:
+	case cALL:
 		return new(call)
-	case CANCEL:
+	case cANCEL:
 		return new(cancel)
-	case RESULT:
+	case rESULT:
 		return new(result)
 
-	case REGISTER:
+	case rEGISTER:
 		return new(register)
-	case REGISTERED:
+	case rEGISTERED:
 		return new(registered)
-	case UNREGISTER:
+	case uNREGISTER:
 		return new(unregister)
-	case UNREGISTERED:
+	case uNREGISTERED:
 		return new(unregistered)
-	case INVOCATION:
+	case iNVOCATION:
 		return new(invocation)
-	case INTERRUPT:
+	case iNTERRUPT:
 		return new(interrupt)
-	case YIELD:
+	case yIELD:
 		return new(yield)
 	default:
 		// TODO: allow custom message types?
@@ -90,60 +90,60 @@ func (mt messageType) New() Message {
 
 func (mt messageType) String() string {
 	switch mt {
-	case HELLO:
-		return "HELLO"
-	case WELCOME:
-		return "WELCOME"
-	case ABORT:
-		return "ABORT"
-	case CHALLENGE:
-		return "CHALLENGE"
-	case AUTHENTICATE:
-		return "AUTHENTICATE"
-	case GOODBYE:
-		return "GOODBYE"
-	case HEARTBEAT:
-		return "HEARTBEAT"
-	case ERROR:
-		return "ERROR"
+	case hELLO:
+		return "hELLO"
+	case wELCOME:
+		return "wELCOME"
+	case aBORT:
+		return "aBORT"
+	case cHALLENGE:
+		return "cHALLENGE"
+	case aUTHENTICATE:
+		return "aUTHENTICATE"
+	case gOODBYE:
+		return "gOODBYE"
+	case hEARTBEAT:
+		return "hEARTBEAT"
+	case eRROR:
+		return "eRROR"
 
-	case PUBLISH:
-		return "PUBLISH"
-	case PUBLISHED:
-		return "PUBLISHED"
+	case pUBLISH:
+		return "pUBLISH"
+	case pUBLISHED:
+		return "pUBLISHED"
 
-	case SUBSCRIBE:
-		return "SUBSCRIBE"
-	case SUBSCRIBED:
-		return "SUBSCRIBED"
-	case UNSUBSCRIBE:
-		return "UNSUBSCRIBE"
-	case UNSUBSCRIBED:
-		return "UNSUBSCRIBED"
-	case EVENT:
-		return "EVENT"
+	case sUBSCRIBE:
+		return "sUBSCRIBE"
+	case sUBSCRIBED:
+		return "sUBSCRIBED"
+	case uNSUBSCRIBE:
+		return "uNSUBSCRIBE"
+	case uNSUBSCRIBED:
+		return "uNSUBSCRIBED"
+	case eVENT:
+		return "eVENT"
 
-	case CALL:
-		return "CALL"
-	case CANCEL:
-		return "CANCEL"
-	case RESULT:
-		return "RESULT"
+	case cALL:
+		return "cALL"
+	case cANCEL:
+		return "cANCEL"
+	case rESULT:
+		return "rESULT"
 
-	case REGISTER:
-		return "REGISTER"
-	case REGISTERED:
-		return "REGISTERED"
-	case UNREGISTER:
-		return "UNREGISTER"
-	case UNREGISTERED:
-		return "UNREGISTERED"
-	case INVOCATION:
-		return "INVOCATION"
-	case INTERRUPT:
-		return "INTERRUPT"
-	case YIELD:
-		return "YIELD"
+	case rEGISTER:
+		return "rEGISTER"
+	case rEGISTERED:
+		return "rEGISTERED"
+	case uNREGISTER:
+		return "uNREGISTER"
+	case uNREGISTERED:
+		return "uNREGISTERED"
+	case iNVOCATION:
+		return "iNVOCATION"
+	case iNTERRUPT:
+		return "iNTERRUPT"
+	case yIELD:
+		return "yIELD"
 	default:
 		// TODO: allow custom message types?
 		panic("Invalid message type")
@@ -151,99 +151,99 @@ func (mt messageType) String() string {
 }
 
 const (
-	HELLO        messageType = 1
-	WELCOME      messageType = 2
-	ABORT        messageType = 3
-	CHALLENGE    messageType = 4
-	AUTHENTICATE messageType = 5
-	GOODBYE      messageType = 6
-	HEARTBEAT    messageType = 7
-	ERROR        messageType = 8
+	hELLO        messageType = 1
+	wELCOME      messageType = 2
+	aBORT        messageType = 3
+	cHALLENGE    messageType = 4
+	aUTHENTICATE messageType = 5
+	gOODBYE      messageType = 6
+	hEARTBEAT    messageType = 7
+	eRROR        messageType = 8
 
-	PUBLISH   messageType = 16 //	Tx 	Rx
-	PUBLISHED messageType = 17 //	Rx 	Tx
+	pUBLISH   messageType = 16 //	Tx 	Rx
+	pUBLISHED messageType = 17 //	Rx 	Tx
 
-	SUBSCRIBE    messageType = 32 //	Rx 	Tx
-	SUBSCRIBED   messageType = 33 //	Tx 	Rx
-	UNSUBSCRIBE  messageType = 34 //	Rx 	Tx
-	UNSUBSCRIBED messageType = 35 //	Tx 	Rx
-	EVENT        messageType = 36 //	Tx 	Rx
+	sUBSCRIBE    messageType = 32 //	Rx 	Tx
+	sUBSCRIBED   messageType = 33 //	Tx 	Rx
+	uNSUBSCRIBE  messageType = 34 //	Rx 	Tx
+	uNSUBSCRIBED messageType = 35 //	Tx 	Rx
+	eVENT        messageType = 36 //	Tx 	Rx
 
-	CALL   messageType = 48 //	Tx 	Rx
-	CANCEL messageType = 49 //	Tx 	Rx
-	RESULT messageType = 50 //	Rx 	Tx
+	cALL   messageType = 48 //	Tx 	Rx
+	cANCEL messageType = 49 //	Tx 	Rx
+	rESULT messageType = 50 //	Rx 	Tx
 
-	REGISTER     messageType = 64 //	Rx 	Tx
-	REGISTERED   messageType = 65 //	Tx 	Rx
-	UNREGISTER   messageType = 66 //	Rx 	Tx
-	UNREGISTERED messageType = 67 //	Tx 	Rx
-	INVOCATION   messageType = 68 //	Tx 	Rx
-	INTERRUPT    messageType = 69 //	Tx 	Rx
-	YIELD        messageType = 70 //	Rx 	Tx
+	rEGISTER     messageType = 64 //	Rx 	Tx
+	rEGISTERED   messageType = 65 //	Tx 	Rx
+	uNREGISTER   messageType = 66 //	Rx 	Tx
+	uNREGISTERED messageType = 67 //	Tx 	Rx
+	iNVOCATION   messageType = 68 //	Tx 	Rx
+	iNTERRUPT    messageType = 69 //	Tx 	Rx
+	yIELD        messageType = 70 //	Rx 	Tx
 )
 
-// [HELLO, Realm|uri, Details|dict]
+// [hELLO, Realm|uri, Details|dict]
 type hello struct {
 	Realm   string
 	Details map[string]interface{}
 }
 
 func (msg *hello) messageType() messageType {
-	return HELLO
+	return hELLO
 }
 
-// [WELCOME, Session|id, Details|dict]
+// [wELCOME, Session|id, Details|dict]
 type welcome struct {
 	Id      uint
 	Details map[string]interface{}
 }
 
 func (msg *welcome) messageType() messageType {
-	return WELCOME
+	return wELCOME
 }
 
-// [ABORT, Details|dict, Reason|uri]
+// [aBORT, Details|dict, Reason|uri]
 type abort struct {
 	Details map[string]interface{}
 	Reason  string
 }
 
 func (msg *abort) messageType() messageType {
-	return ABORT
+	return aBORT
 }
 
-// [CHALLENGE, AuthMethod|string, Extra|dict]
+// [cHALLENGE, AuthMethod|string, Extra|dict]
 type challenge struct {
 	AuthMethod string
 	Extra      map[string]interface{}
 }
 
 func (msg *challenge) messageType() messageType {
-	return CHALLENGE
+	return cHALLENGE
 }
 
-// [AUTHENTICATE, Signature|string, Extra|dict]
+// [aUTHENTICATE, Signature|string, Extra|dict]
 type authenticate struct {
 	Signature string
 	Extra     map[string]interface{}
 }
 
 func (msg *authenticate) messageType() messageType {
-	return AUTHENTICATE
+	return aUTHENTICATE
 }
 
-// [GOODBYE, Details|dict, Reason|uri]
+// [gOODBYE, Details|dict, Reason|uri]
 type goodbye struct {
 	Details map[string]interface{}
 	Reason  string
 }
 
 func (msg *goodbye) messageType() messageType {
-	return GOODBYE
+	return gOODBYE
 }
 
-// [HEARTBEAT, IncomingSeq|integer, OutgoingSeq|integer
-// [HEARTBEAT, IncomingSeq|integer, OutgoingSeq|integer, Discard|string]
+// [hEARTBEAT, IncomingSeq|integer, OutgoingSeq|integer
+// [hEARTBEAT, IncomingSeq|integer, OutgoingSeq|integer, Discard|string]
 type heartbeat struct {
 	IncomingSeq uint
 	OutgoingSeq uint
@@ -251,12 +251,12 @@ type heartbeat struct {
 }
 
 func (msg *heartbeat) messageType() messageType {
-	return HEARTBEAT
+	return hEARTBEAT
 }
 
-// [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri]
-// [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list]
-// [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
+// [eRROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri]
+// [eRROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list]
+// [eRROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
 type errorMessage struct {
 	Type        messageType
 	Request     uint
@@ -267,12 +267,12 @@ type errorMessage struct {
 }
 
 func (msg *errorMessage) messageType() messageType {
-	return ERROR
+	return eRROR
 }
 
-// [PUBLISH, Request|id, Options|dict, Domain|uri]
-// [PUBLISH, Request|id, Options|dict, Domain|uri, Arguments|list]
-// [PUBLISH, Request|id, Options|dict, Domain|uri, Arguments|list, ArgumentsKw|dict]
+// [pUBLISH, Request|id, Options|dict, Domain|uri]
+// [pUBLISH, Request|id, Options|dict, Domain|uri, Arguments|list]
+// [pUBLISH, Request|id, Options|dict, Domain|uri, Arguments|list, ArgumentsKw|dict]
 type publish struct {
 	Request     uint
 	Options     map[string]interface{}
@@ -282,20 +282,20 @@ type publish struct {
 }
 
 func (msg *publish) messageType() messageType {
-	return PUBLISH
+	return pUBLISH
 }
 
-// [PUBLISHED, PUBLISH.Request|id, Publication|id]
+// [pUBLISHED, pUBLISH.Request|id, Publication|id]
 type published struct {
 	Request     uint
 	Publication uint
 }
 
 func (msg *published) messageType() messageType {
-	return PUBLISHED
+	return pUBLISHED
 }
 
-// [SUBSCRIBE, Request|id, Options|dict, Domain|uri]
+// [sUBSCRIBE, Request|id, Options|dict, Domain|uri]
 type subscribe struct {
 	Request uint
 	Options map[string]interface{}
@@ -303,42 +303,42 @@ type subscribe struct {
 }
 
 func (msg *subscribe) messageType() messageType {
-	return SUBSCRIBE
+	return sUBSCRIBE
 }
 
-// [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
+// [sUBSCRIBED, sUBSCRIBE.Request|id, Subscription|id]
 type subscribed struct {
 	Request      uint
 	Subscription uint
 }
 
 func (msg *subscribed) messageType() messageType {
-	return SUBSCRIBED
+	return sUBSCRIBED
 }
 
-// [UNSUBSCRIBE, Request|id, SUBSCRIBED.Subscription|id]
+// [uNSUBSCRIBE, Request|id, sUBSCRIBED.Subscription|id]
 type unsubscribe struct {
 	Request      uint
 	Subscription uint
 }
 
 func (msg *unsubscribe) messageType() messageType {
-	return UNSUBSCRIBE
+	return uNSUBSCRIBE
 }
 
-// [UNSUBSCRIBED, UNSUBSCRIBE.Request|id]
+// [uNSUBSCRIBED, uNSUBSCRIBE.Request|id]
 type unsubscribed struct {
 	Request uint
 }
 
 func (msg *unsubscribed) messageType() messageType {
-	return UNSUBSCRIBED
+	return uNSUBSCRIBED
 }
 
-// [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict]
-// [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list]
-// [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list,
-//     PUBLISH.ArgumentsKw|dict]
+// [eVENT, sUBSCRIBED.Subscription|id, pUBLISHED.Publication|id, Details|dict]
+// [eVENT, sUBSCRIBED.Subscription|id, pUBLISHED.Publication|id, Details|dict, pUBLISH.Arguments|list]
+// [eVENT, sUBSCRIBED.Subscription|id, pUBLISHED.Publication|id, Details|dict, pUBLISH.Arguments|list,
+//     pUBLISH.ArgumentsKw|dict]
 type event struct {
 	Subscription uint
 	Publication  uint
@@ -348,19 +348,19 @@ type event struct {
 }
 
 func (msg *event) messageType() messageType {
-	return EVENT
+	return eVENT
 }
 
-// CallResult represents the result of a CALL.
+// CallResult represents the result of a cALL.
 type callResult struct {
 	Args   []interface{}
 	Kwargs map[string]interface{}
 	Err    string
 }
 
-// [CALL, Request|id, Options|dict, Domain|uri]
-// [CALL, Request|id, Options|dict, Domain|uri, Arguments|list]
-// [CALL, Request|id, Options|dict, Domain|uri, Arguments|list, ArgumentsKw|dict]
+// [cALL, Request|id, Options|dict, Domain|uri]
+// [cALL, Request|id, Options|dict, Domain|uri, Arguments|list]
+// [cALL, Request|id, Options|dict, Domain|uri, Arguments|list, ArgumentsKw|dict]
 type call struct {
 	Request     uint
 	Options     map[string]interface{}
@@ -370,12 +370,12 @@ type call struct {
 }
 
 func (msg *call) messageType() messageType {
-	return CALL
+	return cALL
 }
 
-// [RESULT, CALL.Request|id, Details|dict]
-// [RESULT, CALL.Request|id, Details|dict, YIELD.Arguments|list]
-// [RESULT, CALL.Request|id, Details|dict, YIELD.Arguments|list, YIELD.ArgumentsKw|dict]
+// [rESULT, cALL.Request|id, Details|dict]
+// [rESULT, cALL.Request|id, Details|dict, yIELD.Arguments|list]
+// [rESULT, cALL.Request|id, Details|dict, yIELD.Arguments|list, yIELD.ArgumentsKw|dict]
 type result struct {
 	Request     uint
 	Details     map[string]interface{}
@@ -384,10 +384,10 @@ type result struct {
 }
 
 func (msg *result) messageType() messageType {
-	return RESULT
+	return rESULT
 }
 
-// [REGISTER, Request|id, Options|dict, Domain|uri]
+// [rEGISTER, Request|id, Options|dict, Domain|uri]
 type register struct {
 	Request uint
 	Options map[string]interface{}
@@ -395,41 +395,41 @@ type register struct {
 }
 
 func (msg *register) messageType() messageType {
-	return REGISTER
+	return rEGISTER
 }
 
-// [REGISTERED, REGISTER.Request|id, Registration|id]
+// [rEGISTERED, rEGISTER.Request|id, Registration|id]
 type registered struct {
 	Request      uint
 	Registration uint
 }
 
 func (msg *registered) messageType() messageType {
-	return REGISTERED
+	return rEGISTERED
 }
 
-// [UNREGISTER, Request|id, REGISTERED.Registration|id]
+// [uNREGISTER, Request|id, rEGISTERED.Registration|id]
 type unregister struct {
 	Request      uint
 	Registration uint
 }
 
 func (msg *unregister) messageType() messageType {
-	return UNREGISTER
+	return uNREGISTER
 }
 
-// [UNREGISTERED, UNREGISTER.Request|id]
+// [uNREGISTERED, uNREGISTER.Request|id]
 type unregistered struct {
 	Request uint
 }
 
 func (msg *unregistered) messageType() messageType {
-	return UNREGISTERED
+	return uNREGISTERED
 }
 
-// [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict]
-// [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict, CALL.Arguments|list]
-// [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict, CALL.Arguments|list, CALL.ArgumentsKw|dict]
+// [iNVOCATION, Request|id, rEGISTERED.Registration|id, Details|dict]
+// [iNVOCATION, Request|id, rEGISTERED.Registration|id, Details|dict, cALL.Arguments|list]
+// [iNVOCATION, Request|id, rEGISTERED.Registration|id, Details|dict, cALL.Arguments|list, cALL.ArgumentsKw|dict]
 type invocation struct {
 	Request      uint
 	Registration uint
@@ -439,12 +439,12 @@ type invocation struct {
 }
 
 func (msg *invocation) messageType() messageType {
-	return INVOCATION
+	return iNVOCATION
 }
 
-// [YIELD, INVOCATION.Request|id, Options|dict]
-// [YIELD, INVOCATION.Request|id, Options|dict, Arguments|list]
-// [YIELD, INVOCATION.Request|id, Options|dict, Arguments|list, ArgumentsKw|dict]
+// [yIELD, iNVOCATION.Request|id, Options|dict]
+// [yIELD, iNVOCATION.Request|id, Options|dict, Arguments|list]
+// [yIELD, iNVOCATION.Request|id, Options|dict, Arguments|list, ArgumentsKw|dict]
 type yield struct {
 	Request     uint
 	Options     map[string]interface{}
@@ -453,27 +453,27 @@ type yield struct {
 }
 
 func (msg *yield) messageType() messageType {
-	return YIELD
+	return yIELD
 }
 
-// [CANCEL, CALL.Request|id, Options|dict]
+// [cANCEL, cALL.Request|id, Options|dict]
 type cancel struct {
 	Request uint
 	Options map[string]interface{}
 }
 
 func (msg *cancel) messageType() messageType {
-	return CANCEL
+	return cANCEL
 }
 
-// [INTERRUPT, INVOCATION.Request|id, Options|dict]
+// [iNTERRUPT, iNVOCATION.Request|id, Options|dict]
 type interrupt struct {
 	Request uint
 	Options map[string]interface{}
 }
 
 func (msg *interrupt) messageType() messageType {
-	return INTERRUPT
+	return iNTERRUPT
 }
 
 ////////////////////////////////////////

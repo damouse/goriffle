@@ -47,7 +47,7 @@ func (c *session) handleInvocation(msg *invocation) {
 
 			if err != nil {
 				tosend = &errorMessage{
-					Type:      INVOCATION,
+					Type:      iNVOCATION,
 					Request:   msg.Request,
 					Details:   make(map[string]interface{}),
 					Arguments: result,
@@ -63,7 +63,7 @@ func (c *session) handleInvocation(msg *invocation) {
 		//log.Println("no handler registered for registration:", msg.Registration)
 
 		if err := c.Send(&errorMessage{
-			Type:    INVOCATION,
+			Type:    iNVOCATION,
 			Request: msg.Request,
 			Details: make(map[string]interface{}),
 			Error:   fmt.Sprintf("no handler for registration: %v", msg.Registration),

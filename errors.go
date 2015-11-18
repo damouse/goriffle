@@ -56,7 +56,7 @@ const (
 
     // --- Session Close ---
 
-    // The Connection is shutting down completely - used as a GOODBYE (or ABORT) reason.
+    // The Connection is shutting down completely - used as a GOODBYE (or aBORT) reason.
     ErrSystemShutdown = "wamp.error.system_shutdown"
 
     // The Connection wants to leave the realm - used as a GOODBYE reason.

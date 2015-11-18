@@ -125,14 +125,14 @@ func (c *session) Subscribe(topic string, fn interface{}) error {
 		return err
 	}
 
-	// wait to receive SUBSCRIBED message
+	// wait to receive sUBSCRIBED message
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
 	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error subscribing to topic '%v': %v", topic, e.Error)
 	} else if subscribed, ok := msg.(*subscribed); !ok {
-		return fmt.Errorf(formatUnexpectedMessage(msg, SUBSCRIBED))
+		return fmt.Errorf(formatUnexpectedMessage(msg, sUBSCRIBED))
 	} else {
 		// register the event handler with this subscription
 		c.events[subscribed.Subscription] = &boundEndpoint{topic, fn}
@@ -160,14 +160,14 @@ func (c *session) Unsubscribe(topic string) error {
 		return err
 	}
 
-	// wait to receive UNSUBSCRIBED message
+	// wait to receive uNSUBSCRIBED message
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
 	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error unsubscribing to topic '%v': %v", topic, e.Error)
 	} else if _, ok := msg.(*unsubscribed); !ok {
-		return fmt.Errorf(formatUnexpectedMessage(msg, UNSUBSCRIBED))
+		return fmt.Errorf(formatUnexpectedMessage(msg, uNSUBSCRIBED))
 	}
 
 	delete(c.events, subscriptionID)
@@ -188,14 +188,14 @@ func (c *session) Register(procedure string, fn interface{}, options map[string]
 		return err
 	}
 
-	// wait to receive REGISTERED message
+	// wait to receive rEGISTERED message
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
 	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error registering procedure '%v': %v", procedure, e.Error)
 	} else if registered, ok := msg.(*registered); !ok {
-		return fmt.Errorf(formatUnexpectedMessage(msg, REGISTERED))
+		return fmt.Errorf(formatUnexpectedMessage(msg, rEGISTERED))
 	} else {
 		// register the event handler with this registration
 		c.procedures[registered.Registration] = &boundEndpoint{procedure, fn}
@@ -223,14 +223,14 @@ func (c *session) Unregister(procedure string) error {
 		return err
 	}
 
-	// wait to receive UNREGISTERED message
+	// wait to receive uNREGISTERED message
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return err
 	} else if e, ok := msg.(*errorMessage); ok {
 		return fmt.Errorf("error unregister to procedure '%v': %v", procedure, e.Error)
 	} else if _, ok := msg.(*unregistered); !ok {
-		return fmt.Errorf(formatUnexpectedMessage(msg, UNREGISTERED))
+		return fmt.Errorf(formatUnexpectedMessage(msg, uNREGISTERED))
 	}
 
 	// register the event handler with this unregistration
@@ -238,7 +238,7 @@ func (c *session) Unregister(procedure string) error {
 	return nil
 }
 
-// Publish publishes an EVENT to all subscribed peers.
+// Publish publishes an eVENT to all subscribed peers.
 func (c *session) Publish(endpoint string, args ...interface{}) error {
 	return c.Send(&publish{
 		Request:   newID(),
@@ -264,14 +264,14 @@ func (c *session) Call(procedure string, args ...interface{}) ([]interface{}, er
 		return nil, err
 	}
 
-	// wait to receive RESULT message
+	// wait to receive rESULT message
 	msg, err := c.waitOnListener(id)
 	if err != nil {
 		return nil, err
 	} else if e, ok := msg.(*errorMessage); ok {
 		return nil, fmt.Errorf("error calling procedure '%v': %v", procedure, e.Error)
 	} else if result, ok := msg.(*result); !ok {
-		return nil, fmt.Errorf(formatUnexpectedMessage(msg, RESULT))
+		return nil, fmt.Errorf(formatUnexpectedMessage(msg, rESULT))
 	} else {
 		return result.Arguments, nil
 	}
@@ -314,7 +314,7 @@ func (c *session) JoinRealm(realm string, details map[string]interface{}) (map[s
 	} else if welcome, ok := msg.(*welcome); !ok {
 		c.Send(abortUnexpectedMsg)
 		c.connection.Close()
-		return nil, fmt.Errorf(formatUnexpectedMessage(msg, WELCOME))
+		return nil, fmt.Errorf(formatUnexpectedMessage(msg, wELCOME))
 	} else {
 		go c.Receive()
 		return welcome.Details, nil
@@ -338,7 +338,7 @@ func (c *session) joinRealmCRA(realm string, details map[string]interface{}) (ma
 	} else if challenge, ok := msg.(*challenge); !ok {
 		c.Send(abortUnexpectedMsg)
 		c.connection.Close()
-		return nil, fmt.Errorf(formatUnexpectedMessage(msg, CHALLENGE))
+		return nil, fmt.Errorf(formatUnexpectedMessage(msg, cHALLENGE))
 	} else if authFunc, ok := c.Auth[challenge.AuthMethod]; !ok {
 		c.Send(abortNoAuthHandler)
 		c.connection.Close()
@@ -357,7 +357,7 @@ func (c *session) joinRealmCRA(realm string, details map[string]interface{}) (ma
 	} else if welcome, ok := msg.(*welcome); !ok {
 		c.Send(abortUnexpectedMsg)
 		c.connection.Close()
-		return nil, fmt.Errorf(formatUnexpectedMessage(msg, WELCOME))
+		return nil, fmt.Errorf(formatUnexpectedMessage(msg, wELCOME))
 	} else {
 		go c.Receive()
 		return welcome.Details, nil
