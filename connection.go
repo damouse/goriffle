@@ -12,7 +12,7 @@ import (
 type websocketConnection struct {
 	conn        *websocket.Conn
 	connLock    sync.Mutex
-	serializer  Serializer
+	serializer  serializer
 	messages    chan message
 	payloadType int
 	closed      bool
@@ -88,7 +88,7 @@ func getMessageTimeout(p connection, t time.Duration) (message, error) {
 
 // TODO: make this just add the message to a channel so we don't block
 func (ep *websocketConnection) Send(msg message) error {
-	b, err := ep.serializer.Serialize(msg)
+	b, err := ep.serializer.serialize(msg)
 
 	if err != nil {
 		return err
@@ -135,7 +135,7 @@ func (ep *websocketConnection) run() {
 			close(ep.messages)
 			break
 		} else {
-			msg, err := ep.serializer.Deserialize(b)
+			msg, err := ep.serializer.deserialize(b)
 			if err != nil {
 				log.Println("error deserializing peer message:", err)
 				// TODO: handle error

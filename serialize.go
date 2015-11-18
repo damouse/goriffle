@@ -10,6 +10,12 @@ import (
 	"github.com/ugorji/go/codec"
 )
 
+// Serialiazer is a generic WAMP message serializer used when sending data over a transport.
+type serializer interface {
+    serialize(message) ([]byte, error)
+    deserialize([]byte) (message, error)
+}
+
 type Serialization int
 
 const (
@@ -110,12 +116,6 @@ func applySlice(dst reflect.Value, src reflect.Value) error {
 	return nil
 }
 
-// Serialiazer is a generic WAMP message serializer used when sending data over a transport.
-type Serializer interface {
-	Serialize(message) ([]byte, error)
-	Deserialize([]byte) (message, error)
-}
-
 // convert the message into a list of values, omitting trailing empty values
 func toList(msg message) []interface{} {
 	val := reflect.ValueOf(msg)
@@ -141,17 +141,17 @@ func toList(msg message) []interface{} {
 
 // MessagePack is an implementation of Serializer that handles serializing
 // and deserializing msgpack encoded payloads.
-type MessagePackSerializer struct {
+type messagePackSerializer struct {
 }
 
 // Serialize encodes a Message into a msgpack payload.
-func (s *MessagePackSerializer) Serialize(msg message) ([]byte, error) {
+func (s *messagePackSerializer) serialize(msg message) ([]byte, error) {
 	var b []byte
 	return b, codec.NewEncoderBytes(&b, new(codec.MsgpackHandle)).Encode(toList(msg))
 }
 
 // Deserialize decodes a msgpack payload into a Message.
-func (s *MessagePackSerializer) Deserialize(data []byte) (message, error) {
+func (s *messagePackSerializer) deserialize(data []byte) (message, error) {
 	var arr []interface{}
 	if err := codec.NewDecoderBytes(data, new(codec.MsgpackHandle)).Decode(&arr); err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ type jSONSerializer struct {
 // This method does not handle binary data according to WAMP specifications automatically,
 // but instead uses the default implementation in encoding/json.
 // Use the BinaryData type in your structures if using binary data.
-func (s *jSONSerializer) Serialize(msg message) ([]byte, error) {
+func (s *jSONSerializer) serialize(msg message) ([]byte, error) {
 	return json.Marshal(toList(msg))
 }
 
@@ -188,7 +188,7 @@ func (s *jSONSerializer) Serialize(msg message) ([]byte, error) {
 // This method does not handle binary data according to WAMP specifications automatically,
 // but instead uses the default implementation in encoding/json.
 // Use the BinaryData type in your structures if using binary data.
-func (s *jSONSerializer) Deserialize(data []byte) (message, error) {
+func (s *jSONSerializer) deserialize(data []byte) (message, error) {
 	var arr []interface{}
 	if err := json.Unmarshal(data, &arr); err != nil {
 		return nil, err
@@ -211,12 +211,12 @@ func (s *jSONSerializer) Deserialize(data []byte) (message, error) {
 // This type *should* be used in types that will be marshalled as jSON.
 type BinaryData []byte
 
-func (b BinaryData) MarshaljSON() ([]byte, error) {
+func (b BinaryData) marshaljSON() ([]byte, error) {
 	s := base64.StdEncoding.EncodeToString([]byte(b))
 	return json.Marshal("\x00" + s)
 }
 
-func (b *BinaryData) UnmarshaljSON(arr []byte) error {
+func (b *BinaryData) unmarshaljSON(arr []byte) error {
 	var s string
 	err := json.Unmarshal(arr, &s)
 	if err != nil {

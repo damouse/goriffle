@@ -29,7 +29,7 @@ func TestjSONDeserialize(t *testing.T) {
 
 	s := new(jSONSerializer)
 	for _, tst := range tests {
-		if msg, err := s.Deserialize([]byte(tst.packet)); err != nil {
+		if msg, err := s.deserialize([]byte(tst.packet)); err != nil {
 			t.Errorf("Error parsing good packet: %s, %s", err, tst.packet)
 		} else if msg.messageType() != tst.exp.messageType() {
 			t.Errorf("Incorrect message type: %d != %d", msg.messageType(), tst.exp.messageType())
