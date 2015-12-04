@@ -1,4 +1,4 @@
-package riffle
+package goriffle
 
 // Message is a generic container for a WAMP message.
 type message interface {
@@ -8,15 +8,15 @@ type message interface {
 var (
 	abortUnexpectedMsg = &abort{
 		Details: map[string]interface{}{},
-		Reason:  "turnpike.error.unexpected_message_type",
+		Reason:  "riffle.error.unexpected_message_type",
 	}
 	abortNoAuthHandler = &abort{
 		Details: map[string]interface{}{},
-		Reason:  "turnpike.error.no_handler_for_authmethod",
+		Reason:  "riffle.error.no_handler_for_authmethod",
 	}
 	abortAuthFailure = &abort{
 		Details: map[string]interface{}{},
-		Reason:  "turnpike.error.authentication_failure",
+		Reason:  "riffle.error.authentication_failure",
 	}
 	goodbyeSession = &goodbye{
 		Details: map[string]interface{}{},

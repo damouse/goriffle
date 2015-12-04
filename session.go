@@ -1,11 +1,11 @@
-package riffle
+package goriffle
 
 import (
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/exis-io/browrilla"
 )
 
 type authFunc func(map[string]interface{}, map[string]interface{}) (string, map[string]interface{}, error)
@@ -29,16 +29,28 @@ type boundEndpoint struct {
 
 // Connect to the node with the given URL
 func Start(url string, domain string) (*session, error) {
-	dialer := websocket.Dialer{Subprotocols: []string{"wamp.2.json"}}
 
+	// Part 1: could sub in directly here with "Dial" replacement
+	dialer := websocket.Dialer{Subprotocols: []string{"wamp.2.msgPack"}}
 	conn, _, err := dialer.Dial(url, nil)
 
 	if err != nil {
+		fmt.Println("Unable to dial connection!")
 		return nil, err
 	}
 
+	// ws, err := jssock.New(url)
+
+	// if err != nil {
+	// 	fmt.Println("Unable to create js websocket")
+	// }
+
+	// ws.AddEventListener("message", false, jsHandle)
+	// ws.AddEventListener("open", false, jsOpen)
+
 	connection := &websocketConnection{
-		conn:        conn,
+		conn: conn,
+		// jsws:        ws,
 		messages:    make(chan message, 10),
 		serializer:  new(jSONSerializer),
 		payloadType: websocket.TextMessage,
@@ -52,7 +64,7 @@ func Start(url string, domain string) (*session, error) {
 
 	client := &session{
 		connection:     connection,
-		ReceiveTimeout: 10 * time.Second,
+		ReceiveTimeout: 1 * time.Second,
 		listeners:      make(map[uint]chan message),
 		events:         make(map[uint]*boundEndpoint),
 		procedures:     make(map[uint]*boundEndpoint),
@@ -63,10 +75,19 @@ func Start(url string, domain string) (*session, error) {
 	return client, nil
 }
 
+// func jsHandle(a *js.Object) {
+// 	fmt.Println("Message received: ", a)
+// }
+
+// func jsOpen(a *js.Object) {
+// 	fmt.Println("Opened: ", a)
+// }
+
 // Receive handles messages from the server until this client disconnects.
 // This function blocks and is most commonly run in a goroutine.
 func (c *session) Receive() {
 	for msg := range c.connection.Receive() {
+		//fmt.Println("GR: Core MSG: ", msg)
 
 		switch msg := msg.(type) {
 
@@ -98,6 +119,7 @@ func (c *session) Receive() {
 
 		default:
 			log.Println("unhandled message:", msg.messageType(), msg)
+			panic("Unhandled message!")
 		}
 	}
 
@@ -289,6 +311,46 @@ func (c *session) Leave() error {
 	return nil
 }
 
+func (c *session) handleInvocation(msg *invocation) {
+	if proc, ok := c.procedures[msg.Registration]; ok {
+		go func() {
+			result, err := cumin(proc.handler, msg.Arguments)
+			var tosend message
+
+			tosend = &yield{
+				Request:   msg.Request,
+				Options:   make(map[string]interface{}),
+				Arguments: result,
+			}
+
+			if err != nil {
+				tosend = &errorMessage{
+					Type:      iNVOCATION,
+					Request:   msg.Request,
+					Details:   make(map[string]interface{}),
+					Arguments: result,
+					Error:     err.Error(),
+				}
+			}
+
+			if err := c.Send(tosend); err != nil {
+				log.Println("error sending message:", err)
+			}
+		}()
+	} else {
+		//log.Println("no handler registered for registration:", msg.Registration)
+
+		if err := c.Send(&errorMessage{
+			Type:    iNVOCATION,
+			Request: msg.Request,
+			Details: make(map[string]interface{}),
+			Error:   fmt.Sprintf("no handler for registration: %v", msg.Registration),
+		}); err != nil {
+			log.Println("error sending message:", err)
+		}
+	}
+}
+
 /////////////////////////////////////////////
 // Misc
 /////////////////////////////////////////////
@@ -316,7 +378,7 @@ func (c *session) JoinRealm(realm string, details map[string]interface{}) (map[s
 		c.connection.Close()
 		return nil, fmt.Errorf(formatUnexpectedMessage(msg, wELCOME))
 	} else {
-		go c.Receive()
+		//go c.Receive()
 		return welcome.Details, nil
 	}
 }

@@ -1,4 +1,4 @@
-package riffle
+package goriffle
 
 import (
 	"fmt"
@@ -6,11 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/exis-io/browrilla"
 )
 
 type websocketConnection struct {
-	conn        *websocket.Conn
+	conn *websocket.Conn
+	// jsws        *jssock.WebSocket
 	connLock    sync.Mutex
 	serializer  serializer
 	messages    chan message
@@ -33,46 +34,6 @@ type connection interface {
 	Receive() <-chan message
 }
 
-func (c *session) handleInvocation(msg *invocation) {
-	if proc, ok := c.procedures[msg.Registration]; ok {
-		go func() {
-			result, err := cumin(proc.handler, msg.Arguments)
-			var tosend message
-
-			tosend = &yield{
-				Request:   msg.Request,
-				Options:   make(map[string]interface{}),
-				Arguments: result,
-			}
-
-			if err != nil {
-				tosend = &errorMessage{
-					Type:      iNVOCATION,
-					Request:   msg.Request,
-					Details:   make(map[string]interface{}),
-					Arguments: result,
-					Error:     err.Error(),
-				}
-			}
-
-			if err := c.Send(tosend); err != nil {
-				log.Println("error sending message:", err)
-			}
-		}()
-	} else {
-		//log.Println("no handler registered for registration:", msg.Registration)
-
-		if err := c.Send(&errorMessage{
-			Type:    iNVOCATION,
-			Request: msg.Request,
-			Details: make(map[string]interface{}),
-			Error:   fmt.Sprintf("no handler for registration: %v", msg.Registration),
-		}); err != nil {
-			log.Println("error sending message:", err)
-		}
-	}
-}
-
 // Convenience function to get a single message from a peer
 func getMessageTimeout(p connection, t time.Duration) (message, error) {
 	select {
@@ -80,6 +41,7 @@ func getMessageTimeout(p connection, t time.Duration) (message, error) {
 		if !open {
 			return nil, fmt.Errorf("receive channel closed")
 		}
+
 		return msg, nil
 	case <-time.After(t):
 		return nil, fmt.Errorf("timeout waiting for message")
@@ -88,14 +50,21 @@ func getMessageTimeout(p connection, t time.Duration) (message, error) {
 
 // TODO: make this just add the message to a channel so we don't block
 func (ep *websocketConnection) Send(msg message) error {
+
 	b, err := ep.serializer.serialize(msg)
+
+	fmt.Println("Serializing message, output: ", b)
+	// done, err := ep.serializer.deserialize(b)
+	// fmt.Println("Deserialized: ", done, err)
 
 	if err != nil {
 		return err
 	}
 
 	ep.connLock.Lock()
-	err = ep.conn.WriteMessage(ep.payloadType, b)
+	// err = ep.conn.WriteMessage(ep.payloadType, b)
+	_, err = ep.conn.UnderlyingConn().Write(b)
+	// err = ep.jsws.Send(b)
 	ep.connLock.Unlock()
 
 	return err
@@ -106,24 +75,27 @@ func (ep *websocketConnection) Receive() <-chan message {
 }
 
 func (ep *websocketConnection) Close() error {
-	closeMsg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "goodbye")
-	err := ep.conn.WriteControl(websocket.CloseMessage, closeMsg, time.Now().Add(5*time.Second))
+	fmt.Println("WARN-- cant close!")
 
-	if err != nil {
-		log.Println("error sending close message:", err)
-	}
+	// panic("Why are you closing?")
+	// closeMsg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "goodbye")
+	// err := ep.conn.WriteControl(websocket.CloseMessage, closeMsg, time.Now().Add(5*time.Second))
 
-	ep.closed = true
-	return ep.conn.Close()
+	// if err != nil {
+	// 	log.Println("error sending close message:", err)
+	// }
+
+	// ep.closed = true
+	// return ep.conn.Close()
+
+	return nil
 }
 
 func (ep *websocketConnection) run() {
 	for {
-		// TODO: use conn.NextMessage() and stream
-		// TODO: do something different based on binary/text frames
 		if msgType, b, err := ep.conn.ReadMessage(); err != nil {
 			if ep.closed {
-				// log.Println("peer connection closed")
+				log.Println("peer connection closed")
 			} else {
 				log.Println("error reading from peer:", err)
 				ep.conn.Close()
@@ -131,6 +103,7 @@ func (ep *websocketConnection) run() {
 			close(ep.messages)
 			break
 		} else if msgType == websocket.CloseMessage {
+			fmt.Println("Close message recieved")
 			ep.conn.Close()
 			close(ep.messages)
 			break
@@ -138,8 +111,10 @@ func (ep *websocketConnection) run() {
 			msg, err := ep.serializer.deserialize(b)
 			if err != nil {
 				log.Println("error deserializing peer message:", err)
+				log.Println(b)
 				// TODO: handle error
 			} else {
+				fmt.Println("Message received!")
 				ep.messages <- msg
 			}
 		}
@@ -172,28 +147,4 @@ func (c *session) notifyListener(msg message, requestId uint) {
 	} else {
 		log.Println("no listener for message", msg.messageType(), requestId)
 	}
-}
-
-func formatUnexpectedMessage(msg message, expected messageType) string {
-	s := fmt.Sprintf("received unexpected %s message while waiting for %s", msg.messageType(), expected)
-	switch m := msg.(type) {
-	case *abort:
-		s += ": " + string(m.Reason)
-		s += formatUnknownMap(m.Details)
-		return s
-	case *goodbye:
-		s += ": " + string(m.Reason)
-		s += formatUnknownMap(m.Details)
-		return s
-	}
-	return s
-}
-
-func formatUnknownMap(m map[string]interface{}) string {
-	s := ""
-	for k, v := range m {
-		// TODO: reflection to recursively check map
-		s += fmt.Sprintf(" %s=%v", k, v)
-	}
-	return s
 }

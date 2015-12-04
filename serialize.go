@@ -1,4 +1,4 @@
-package riffle
+package goriffle
 
 import (
 	"encoding/base64"
@@ -12,8 +12,8 @@ import (
 
 // Serialiazer is a generic WAMP message serializer used when sending data over a transport.
 type serializer interface {
-    serialize(message) ([]byte, error)
-    deserialize([]byte) (message, error)
+	serialize(message) ([]byte, error)
+	deserialize([]byte) (message, error)
 }
 
 type Serialization int

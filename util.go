@@ -1,6 +1,7 @@
-package riffle
+package goriffle
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -25,3 +26,27 @@ func newID() uint {
 // 		//log.Printf("%s", string(m))
 // 	}
 // }
+
+func formatUnexpectedMessage(msg message, expected messageType) string {
+	s := fmt.Sprintf("received unexpected %s message while waiting for %s", msg.messageType(), expected)
+	switch m := msg.(type) {
+	case *abort:
+		s += ": " + string(m.Reason)
+		s += formatUnknownMap(m.Details)
+		return s
+	case *goodbye:
+		s += ": " + string(m.Reason)
+		s += formatUnknownMap(m.Details)
+		return s
+	}
+	return s
+}
+
+func formatUnknownMap(m map[string]interface{}) string {
+	s := ""
+	for k, v := range m {
+		// TODO: reflection to recursively check map
+		s += fmt.Sprintf(" %s=%v", k, v)
+	}
+	return s
+}
